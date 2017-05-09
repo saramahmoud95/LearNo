@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="ISO-8859-1" />
+<title>Insert title here</title>
+</head>
+
+
+<body>
+	   <form action = "/ShowQuestion" method = "GET">
+	
+					<fieldset>
+						
+						<label > Question :  </label>
+																		
+						<p th:if="${question}" th:inline="text"> [[${question}]]  </p>
+						
+						<input type  = "radio" name  = "name" id  = "type" value  = "choose1" />
+						<p th:if="${choose1}" th:inline="text" style  = "display:inline;"> [[${choose1}]]  </p>
+						 
+						 <br></br>
+						
+						<input type  = "radio" name  = "name" id  = "type" value  = "choose2" />
+						<p th:if="${choose2}" th:inline="text" style  = "display:inline;"> [[${choose2}]]  </p>
+						
+						 <br></br>
+						
+						<input type  = "radio" name  = "name" id  = "type" value  = "choose3" />
+						<p th:if="${choose3}" th:inline="text" style  = "display:inline;"> [[${choose3}]]  </p>
+					
+					     <br></br>
+					    
+					    <input type  = "radio" name  = "name" id  = "type" value  = "choose4" />
+						<p th:if="${choose4}" th:inline="text" style  = "display:inline;"> [[${choose4}]]  </p>
+					
+					    
+					    <br></br>
+					
+					</fieldset>
+	
+				    
+				    <p th:if="${msg}" th:inline="text"> [[${msg}]]  </p>
+					
+					<input type  = "submit" value  = "Submit Answer " />	
+	  </form>	 
+</body>
+</html>
