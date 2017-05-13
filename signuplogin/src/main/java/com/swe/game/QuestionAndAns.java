@@ -67,6 +67,13 @@ public class QuestionAndAns {
 		
 	}
 	
+	public void insert_Copy_Question (String GameName) throws SQLException
+	{
+		String query = "insert into QuestionAndAnswers (game_name , question , answer1 , answer2 , answer3 , rightanswer) values('"+GameName+"','"+this.Question+"','"+this.Ans1+"','"+this.Ans2+"','"+this.Ans3+"','"+this.CorrectAns+"'); " ;
+		DBConnection.insert(query);	
+		
+	}
+	
 	public static ArrayList<QuestionAndAns> getGameQuestions(String gamename) throws SQLException
 	{	
 		

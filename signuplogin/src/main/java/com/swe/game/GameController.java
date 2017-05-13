@@ -15,15 +15,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-//import com.mysql.jdbc.Connection;
-//import com.mysql.jdbc.PreparedStatement;
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.PreparedStatement;
 import com.swe.course.Course;
 import com.swe.dbConnections.DBConnection;
-import com.swe.user.Teacher;
 import com.swe.user.UserController;
 
 @Controller
 public class GameController {
+
+
+	public static String CurProvider = "";
 
 	public static int numofquestions = 0 , score =0  ; // num of questions 34an ytl3hom fe play game , score bta3 el cur user 
 	
@@ -47,6 +49,95 @@ public class GameController {
 		return "addGameForm";
 	}
 	
+	
+	
+	Game game = new Game();
+
+	/****************************************************************************************/
+	@RequestMapping(value = "/Copy/{name}", method = RequestMethod.GET)
+	public ModelAndView Copy(@PathVariable String name) throws SQLException {
+		ArrayList<Game> games = new ArrayList<Game>();
+		//Game game = new Game();
+		// name--->course name
+		game.setCourseName(name);
+		game.setGameName(CurGameName);
+		game.setNumOfQuestions(NumberOfQuestions);
+		System.out.println("game.QuestionsAndAnswers in copy  " + Questions.size());
+
+		CurProvider=getProvider(name);
+		game.setProvider(CurProvider);
+		game.CopyGame(Questions);
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName("showGames");
+		mv.addObject("games", games);
+		return mv;
+	}
+		/****************************************************************************************/
+
+	
+		@RequestMapping(value = "/deletegame/{gamename}", method = RequestMethod.GET)
+	public ModelAndView DeleteGame(@PathVariable String gamename) throws SQLException {
+
+		ModelAndView mv = new ModelAndView();
+		CurGameName = gamename;
+		//Game game = new Game();
+
+		game.setGameName(CurGameName);
+
+		game.Delete_Game();
+		mv.setViewName("showGames");
+		return mv;
+	}
+			/****************************************************************************************/
+
+@RequestMapping(value = "/Copy_Questions/{gamename}/{Num_Of_Q}/{Provider_name}", method = RequestMethod.GET)
+	public ModelAndView Copy_Questions(@PathVariable String gamename, @PathVariable int Num_Of_Q,
+			@PathVariable String Provider_name) throws SQLException {
+		ModelAndView mv = new ModelAndView();
+		CurGameName = gamename;
+		Game game = new Game();
+		game.setGameName(CurGameName);
+		game.setProvider(Provider_name);
+		game.setNumOfQuestions(Num_Of_Q);
+		NumberOfQuestions=Num_Of_Q;
+		System.out.println("-------------------------------------------------------------------------");
+		System.out.println("CurGameName + " + CurGameName);
+		System.out.println("Provider_name  + " + Provider_name);
+		System.out.println("Num_Of_Q   = " + Num_Of_Q);
+		this.Questions = QuestionAndAns.getGameQuestions(CurGameName);
+		game.QuestionsAndAnswers = Questions;
+		System.out.println("game.QuestionsAndAnswers " + Questions.size());
+		System.out.println("-------------------------------------------------------------------------");
+		mv.setViewName("Teacher_Courses_Paste");
+		ArrayList<Course> CoursesList = new ArrayList<Course>();
+		Course course = new Course();
+		CoursesList = course.getCurTeacherCourses();
+		mv.addObject("courses", CoursesList);
+		return mv;
+	}
+	
+/****************************************************************************************/
+
+
+
+@RequestMapping("/addcomment")
+public ModelAndView AddComment(@RequestParam("comment") String comment)
+	throws SQLException {
+	
+	ModelAndView mv = new ModelAndView();
+	mv.setViewName("playgame1");
+	System.out.println("Current game name = "  +CurGameName);
+	game.setComment(comment);
+	game.Add_comment(CurGameName);
+	return mv;	
+}
+
+
+/****************************************************************************************/
+
+	
+	
+	
 	@RequestMapping(value="/showgames/{name}",method=RequestMethod.GET)
 	public ModelAndView ShowGames(@PathVariable String name) throws SQLException
 	{
@@ -57,8 +148,27 @@ public class GameController {
 		   mv.setViewName("showGames");
 		   mv.addObject("games", games);
 		   
+		   
 		   return mv;
 	}
+	
+	
+	
+	@RequestMapping(value="/showgamewithremove/{name}",method=RequestMethod.GET)
+	public ModelAndView ShowGamesToDelete(@PathVariable String name) throws SQLException
+	{
+		   ArrayList<Game> games = new ArrayList<Game>();
+		   Game game = new Game() ;
+		   games = game.GetCourseGames(name);  // get kol el games eli tb3 el course name dah 
+		   ModelAndView mv=new ModelAndView();
+		   mv.setViewName("showgamewithremove");
+		   mv.addObject("games", games);
+		   
+		   return mv;
+	}
+	
+	
+	
 	
 //	 @RequestMapping("/EnterGame.html")
 //	 public ModelAndView showenter()
@@ -73,32 +183,19 @@ public class GameController {
 		 return "EnterGame" ;
 	 }
 	 
-	 @RequestMapping("/EnterGameComment.html")
-	 public String map2()
-	 {   
-		 return "EnterGameComment" ;
-	 }
-	 
     @RequestMapping("/EnterPlayGame")
     public ModelAndView enterplaygame(@RequestParam("gname") String gamename) throws SQLException
 	{      
 		   ModelAndView mv=new ModelAndView();
 		   mv.setViewName("playgame1"); // na2es feha el CSS 
     	  
-		   System.out.println("game nameeeeeeeeeee issss = " + gamename);
-           
-		   Curgame = new Game() ;
+		   System.out.println("game name = " + gamename);
+
 		   Curgame.setGameName(gamename);
-		   
-		   System.out.println("Cur game name = " + Curgame.getGameName());
-
-    	   boolean notfound = Curgame.isUnique() ; // el mfrod ttla3 false
     	   
-		   System.out.println("boolean = " + notfound);
-
-    	   
-    	   if (!notfound) // el game dy mwgoda aslan y3ny md5l esmha sa7
+    	   if ( !Curgame.isUnique()) // el game dy mwgoda aslan y3ny md5l esmha sa7
     	   {   
+    		   System.out.println("iffffffffffff 111111111");
         	   this.Questions = QuestionAndAns.getGameQuestions(gamename);
     		   CurGameName = gamename ;
     		   mv.setViewName("playgame1"); // na2es feha el CSS 
@@ -113,6 +210,7 @@ public class GameController {
     	   
     	   else 
     	   {   
+    		   System.out.println("ay 7aga ya gd3an");
     		   mv.addObject("result", "This Game is not Found ! , Please Try again"); 
     		   mv.setViewName("EnterGame");
 
@@ -121,52 +219,8 @@ public class GameController {
 		   return mv; 
 
 	}
-    
-    
-    @RequestMapping("/EnterCommentGame")
-    public ModelAndView entercommentgame(@RequestParam("gname") String gamename , @RequestParam("comment") String comment ) throws SQLException
-	{      
-		   ModelAndView mv=new ModelAndView();
-		   mv.setViewName("showComments"); 
-		   Curgame = new Game() ;
-		   Curgame.setGameName(gamename);
-    	   boolean notfound = Curgame.isUnique() ; // el mfrod ttla3 false
-    	
-    	   if (!notfound) // el game dy mwgoda aslan y3ny md5l esmha sa7
-    	   {   
-    		   
-    		   Subject subject = new Subject();
-    		   new Teacher(subject);
-    		  
-    		  
-    		   
-    		   
-        	   this.Questions = QuestionAndAns.getGameQuestions(gamename);
-    		   CurGameName = gamename ;
-    		   mv.setViewName("playgame1"); // na2es feha el CSS 
-    		   // show the first question 
-    		   mv.addObject("question", Questions.get(numofquestions).getQuestion());
-    		   mv.addObject("choose1" , Questions.get(numofquestions).getAns1());
-    		   mv.addObject("choose2" , Questions.get(numofquestions).getAns2());
-    		   mv.addObject("choose3" , Questions.get(numofquestions).getAns3());
-    		   mv.addObject("choose4" , Questions.get(numofquestions).getCorrectAns());
-  
-    	   }
-    	   
-    	   else 
-    	   {   
-    		   mv.addObject("result", "This Game is not Found ! , Please Try again"); 
-    		   mv.setViewName("EnterGame");
 
-    	   }
-    	   
-		   return mv; 
-
-	}
-    
-    
-
-	@RequestMapping(value="/playgame/{gamename}",method=RequestMethod.GET)
+   /* @RequestMapping(value="/playgame/{gamename}",method=RequestMethod.GET)
 	public ModelAndView PlayGame(@PathVariable String gamename) throws SQLException  
 	{    
 		   this.Questions = QuestionAndAns.getGameQuestions(gamename);
@@ -174,6 +228,28 @@ public class GameController {
 		   CurGameName = gamename ;
 		   mv.setViewName("playgame1"); // na2es feha el CSS 
 		   
+		   // show the first question 
+		   mv.addObject("question", Questions.get(numofquestions).getQuestion());
+		   mv.addObject("choose1" , Questions.get(numofquestions).getAns1());
+		   mv.addObject("choose2" , Questions.get(numofquestions).getAns2());
+		   mv.addObject("choose3" , Questions.get(numofquestions).getAns3());
+		   mv.addObject("choose4" , Questions.get(numofquestions).getCorrectAns());
+
+		   return mv;
+	}*/
+    	@RequestMapping(value="/playgame/{gamename}",method=RequestMethod.GET)
+	public ModelAndView PlayGame(@PathVariable String gamename) throws SQLException  
+	{    
+		   this.Questions = QuestionAndAns.getGameQuestions(gamename);
+		   ModelAndView mv=new ModelAndView();
+		   Game game = new Game() ;
+		   CurGameName = gamename ;
+		   ArrayList<String> gamesComment = new ArrayList<String>();
+		   gamesComment = game.GetGameComments(gamename);
+		   mv.setViewName("playgame1");
+           mv.addObject("playgame1", gamesComment);
+		   
+		  // mv.setViewName("playgame1"); // na2es feha el CSS 
 		   // show the first question 
 		   mv.addObject("question", Questions.get(numofquestions).getQuestion());
 		   mv.addObject("choose1" , Questions.get(numofquestions).getAns1());
@@ -231,50 +307,13 @@ public class GameController {
         return mv ;
 	}
 	
-	public boolean IsExist() throws SQLException
-	{
-		boolean found = false ;
-		
-		 String query = ("Select Game_name , student_name from  paly where Game_name  = '"+CurGameName+"' and student_name = '"+UserController.CurrentStudent.getName()+"';");
-		 PreparedStatement stmt = (PreparedStatement) DBConnection.getConnection().prepareStatement(query);
-		 
-		 ResultSet rs = stmt.executeQuery(query);
-		if (rs.next())
-		{
-			found = true;
-		}
-		
-		return found ;
-	}
 	
 	public void savescore () throws SQLException
-	{  
-		if (IsExist()) // law el row dah asln already mawgod hay3ml update lel score be a5r score el ragel gabo
-		{   
-			String query = "update paly set score = "+score+" where student_name = '"+UserController.CurrentStudent.getName()+"' and Game_name ='"+CurGameName+"' ;" ;
-			DBConnection.insert(query);
-		}
-		else 
-		{
-			String query = "insert into paly (Game_name, student_name , Score) values('"+CurGameName+"','"+UserController.CurrentStudent.getName()+"', "+score+") ;" ;
-			DBConnection.insert(query);
-		}
-		
-	}
-	@RequestMapping(value="/Copygame/{gamename}",method=RequestMethod.GET)
-	public ModelAndView CopyGame(@RequestParam("courseName") String courseName , @RequestParam("gameName") String gameName) throws SQLException
 	{
-		ModelAndView mv = new ModelAndView();
-		Game game =new Game();
-		QuestionAndAns questionAndanswer =new QuestionAndAns();
-		questionAndanswer.getGameQuestions(gameName);
-		game.setCourseName(courseName);
-		game.setGameName(gameName);           //a7na 3ayzen n3'ayr fl name 
-		mv.setViewName("CopyGame");
-		 
-		 
-		 return mv;
-		
+
+		String query = "insert into paly (Game_name, student_name , Score) values('"+CurGameName+"','"+UserController.CurrentStudent.getName()+"', "+score+") ;" ;
+		DBConnection.insert(query);
+	
 	}
 	
 	public String getProvider(String coursename) throws SQLException // law el course m4 mawgod yb2a malo4 provider ... fa dy k2nha check 3ala en l course aslan mawgod
@@ -348,10 +387,14 @@ public class GameController {
 			mv.setViewName("addQuestions");
 			
 		}
-
-		
+				
 		return mv;
 	}
+	
+	
+	
+	
+
 
 	@RequestMapping("/addNextquestion")
 	public ModelAndView AddQuestion(@RequestParam("quest") String question, @RequestParam("answer1") String Ans1,
